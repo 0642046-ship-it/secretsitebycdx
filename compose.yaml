@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    environment:
+      RAMKA_ORIGIN: https://${RAMKA_DOMAIN:?Set RAMKA_DOMAIN in .env}
+      RAMKA_DB: /data/ramka.db
+    volumes:
+      - ramka_data:/data
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      RAMKA_DOMAIN: ${RAMKA_DOMAIN:?Set RAMKA_DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+volumes:
+  ramka_data:
+  caddy_data:
+  caddy_config:
